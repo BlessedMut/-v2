@@ -29,15 +29,19 @@ def login():
                 elif user.role == "level_1":
                     return redirect(url_for('views.upload'))
                 elif user.role == "level_2":
-                    return redirect(url_for('views.view_reports'))
+                    flash(
+                        'This view is still under construction, please come again later. Sorry for the inconveniences caused',
+                        category='warning')
+                    return render_template("auth/login.html")
+                    # return redirect(url_for('views.view_reports'))
                 elif user.role == "level_3":
                     return redirect(url_for('views.download'))
             else:
                 flash('Incorrect password, try again.', category='error')
         else:
             flash('Email does not exist.', category='error')
-
-    return render_template("auth/login.html", user=current_user)
+    else:
+        return render_template("auth/login.html")
 
 
 @auth.route('/logout')
