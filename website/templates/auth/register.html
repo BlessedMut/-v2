@@ -1,0 +1,126 @@
+{% extends "auth/base.html" %}
+{% block content %}
+    <!-- Page content -->
+    <div class="container mt--8 pb-5">
+
+        <!-- Table -->
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            {% if category == 'error' %}
+                                <div class="alert alert-danger alter-dismissable fade show"
+                                     role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-success alter-dismissable fade show"
+                                     role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="card bg-secondary border-0">
+                    <div class="card-header bg-transparent pb-2">
+                        <div class="text-muted text-center mt-3"><h3>Join Zimtopup Today</h3></div>
+                        <div class="text-center">
+
+                        </div>
+                    </div>
+                    <div class="card-body px-lg-5 py-lg-4">
+                        <div class="text-center text-muted mb-4">
+                            <small>Please fill all the fields below</small>
+                        </div>
+                        <form role="form">
+                            <div class="form-group">
+                                <div class="input-group input-group-merge input-group-alternative mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
+                                    </div>
+                                    <input class="form-control" name="username" id="username" placeholder="Username"
+                                           type="text">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group input-group-merge input-group-alternative mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="ni ni-email-83"></i></span>
+                                    </div>
+                                    <input class="form-control" id="email" name="email" placeholder="Email"
+                                           type="email">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group input-group-merge input-group-alternative">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
+                                    </div>
+                                    <input class="form-control" id="password1" name="password1" placeholder="Password"
+                                           type="password">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group input-group-merge input-group-alternative">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
+                                    </div>
+                                    <input class="form-control" id="password2" name="password2"
+                                           placeholder="Confirm Password" type="password">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group input-group-merge input-group-alternative">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="ni ni-laptop"></i></span>
+                                    </div>
+                                    <select style="padding-bottom: 0.6rem; padding-top: -5px;"
+                                            class="form-control  form-control"
+                                            name="user_level" id="user_level"
+                                            aria-label="8">
+                                        <option value="level_0">Level 0</option>
+                                        <option value="level_1">Level 1</option>
+                                        <option value="level_2">Level 2</option>
+                                        <option value="level_3">Level 3</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row my-4">
+                                <div class="col-12">
+                                    <div class="custom-control custom-control-alternative custom-checkbox">
+                                        <input class="custom-control-input" id="customCheckRegister" type="checkbox">
+                                        <label class="custom-control-label" for="customCheckRegister">
+                                            <span class="text-muted">I agree with the <a
+                                                    href="#!">Privacy Policy</a></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <button type="button" class="btn btn-primary mt-4">Create account</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-6">
+
+                    </div>
+                    <div class="col-6 text-right">
+                        <a href="{{ url_for('auth.login') }}" class="text-light"><small>Already have an account?</small></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+

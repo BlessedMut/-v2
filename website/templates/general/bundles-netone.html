@@ -1,0 +1,101 @@
+{% extends "general/base.html" %}
+{% block content %}
+
+    <!-- Header -->
+    <div class="header bg-primary pb-6">
+        <div class="container-fluid">
+            <div class="header-body">
+                <div class="row align-items-center py-4">
+                    <div class="col-lg-6 col-7">
+                        <h6 class="h2 text-white d-inline-block mb-0">Airtime</h6>
+                        <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+                            <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+                                <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i></a></li>
+                                <li class="breadcrumb-item"><a href="#">Net-One</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Bundles Recharge</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div class="col-lg-6 col-5 text-right">
+                        <!-- <a href="#" class="btn btn-sm btn-neutral">New</a>
+                        <a href="#" class="btn btn-sm btn-neutral">Filters</a> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Page content -->
+    <div class="container-fluid mt--6">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'error' %}
+                        <div class="alert alert-danger alter-dismissable fade show"
+                             role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-success alter-dismissable fade show"
+                             role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <div class="card mb-4">
+            <!-- Card header -->
+            <div class="card-header">
+                <h3 class="mb-0">Net-One Bundle Recharge</h3>
+            </div>
+            <!-- Card body -->
+            <div class="card-body">
+                <!-- Form groups used in grid -->
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="form-group">
+
+                        </div>
+                    </div>
+                    <div class="col-md-10">
+                        <div class="form-group">
+                            <label class="form-control-label" for="example3cols2Input">Available Wallet Balance
+                                is ZWL{{ wallet_balance }}.</label>
+                            <form class="row" method="POST">
+                                <div class="col-lg-4 mb-2 mt-2">
+                                    <input class="form-control" name="phone_number" id="phone_number"
+                                           placeholder="071X XXX XXX"
+                                           type="text">
+                                </div>
+                                <div class="col-lg-4 mb-2 mt-2">
+                                    <select type="text"
+                                            class="form-control"
+                                            name="bundle" id="bundle"
+                                            aria-label="8">
+                                        {% for bundle in bundles %}
+                                            <option {{ bundle[0] }}>{{ bundle[0] }} ~ ZWL{{ bundle[1] }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-auto mb-2 mt-2">
+                                    <button type="submit" class="btn btn-default">Transact</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock content %}
