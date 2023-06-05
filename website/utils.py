@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sqlalchemy import create_engine
 
-engine = create_engine('postgresql+psycopg2://postgres:wkpProg219!@213.136.91.250:5432/zimtopup', pool_recycle=3600)
+engine = create_engine('postgresql+psycopg2://postgres:Support1999@localhost:5432/zimtopup', pool_recycle=3600)
 
 
 def append_data(df):

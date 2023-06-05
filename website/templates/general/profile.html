@@ -1,0 +1,221 @@
+{% extends "general/base.html" %} {% block title %} My Profile | {{ current_user.username }} {% endblock %}
+{% block content %}
+
+    <!-- Main content -->
+    <div class="main-content" id="panel">
+        <!-- Topnav -->
+
+        <!-- Header -->
+        <!-- Header -->
+        <div class="header pb-6 d-flex align-items-center"
+             style="min-height: 500px; background-image: url({{ url_for('static', filename='assets/img/theme/profile-cover.jpg') }}); background-size: cover; background-position: center top;">
+            <!-- Mask -->
+            <span class="mask bg-gradient-default opacity-8"></span>
+            <!-- Header container -->
+            <div class="container-fluid d-flex align-items-center">
+                <div class="row">
+                    <div class="col-lg-12 col-md-10">
+                        <h1 class="display-2 text-white">
+                            Good {{ time_of_day.lower() }} {{ user_data.username.capitalize() }}</h1>
+                        {#                        <p class="text-white mt-0 mb-5">This is your profile page. You can see the progress you've made#}
+                        {#                            with#}
+                        {#                            your work and manage your projects or assigned tasks</p>#}
+                        {#            <a href="#!" class="btn btn-neutral">Edit profile</a>#}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Page content -->
+        <div class="container-fluid mt--6">
+            <div class="row">
+                <div class="col-xl-4 order-xl-2">
+                    <div class="card card-profile">
+                        <img src="{{ url_for('static', filename='assets/img/theme/img-1-1000x600.jpg') }}"
+                             alt="Image placeholder" class="card-img-top">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    {% if category == 'error' %}
+                                        <div class="alert alert-danger alter-dismissable fade show"
+                                             role="alert">
+                                            {{ message }}
+                                            <button type="button" class="close" data-dismiss="alert">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-success alter-dismissable fade show"
+                                             role="alert">
+                                            {{ message }}
+                                            <button type="button" class="close" data-dismiss="alert">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                        <div class="row justify-content-center">
+                            <div class="col-lg-3 order-lg-2">
+                                <div class="card-profile-image">
+                                    <a href="#">
+                                        {% if not img_path %}
+                                            <img alt="profile picture" class="rounded-circle" height="120" width="120"
+                                                 src="{{ url_for('static', filename='blue.png') }}">
+                                        {% else %}
+                                            <img alt="profile picture" class="rounded-circle" height="120" width="120"
+                                                 src="{{ url_for('static', filename=img_path) }}">
+                                        {% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-header text-center border-0 pt-8 pt-md-4 pb-0 pb-md-4">
+                            <div class="d-flex justify-content-between">
+                                <a class="btn btn-sm btn-white  mr-4 "></a>
+                                <a href="#" class="btn btn-sm btn-danger float-right">Disable</a>
+                            </div>
+                        </div>
+                        <div class="card-body pt-0">
+                            <div class="row">
+                                <div class="col">
+                                    <div class="card-profile-stats d-flex justify-content-center">
+                                        <div>
+
+                                        </div>
+                                        <div>
+                                            <span class="heading">{{ user_data.username.capitalize() }}</span>
+                                            <span class="description">{{ user_data.email }}</span>
+                                        </div>
+                                        <div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <h5 class="h5 mt-1">
+                                    Role -<span
+                                        class="font-weight-light"> <i
+                                        class="ni business_briefcase-24 mr-2">{{ user_data.role }}</i></span>
+                                </h5>
+
+                                <div class="h5 mt-4 mb-3">
+
+                                    {% if user.status == True %}
+                                        Status -  <i class="ni business_briefcase-24 mr-2">Active</i>
+                                    {% else %}
+                                        Status - Inactive
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <i class="ni education_hat mr-2"></i>Joined on {{ date_joined }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-8 order-xl-1">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="row align-items-center">
+                                <div class="col-8">
+                                    <h3 class="mb-0">Edit profile </h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="/profile/{{ user_data.id }}" enctype="multipart/form-data">
+                                <h6 class="heading-small text-muted mb-4">User information</h6>
+                                <div class="pl-lg-4">
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label" for="input-username">Username</label>
+                                                <input type="text" id="username" name="username" class="form-control"
+                                                       placeholder="{{ user_data.username }}"
+                                                       value="{{ user_data.username }}" disabled>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label" for="input-email">Email
+                                                    address</label>
+                                                <input type="email" id="email" name="email" class="form-control"
+                                                       placeholder="{{ user_data.email }}"
+                                                       value="{{ user_data.email }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr class="my-4"/>
+                                <!-- Address -->
+                                <h6 class="heading-small text-muted mb-4">Reset Password</h6>
+                                <div class="pl-lg-4">
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label" for="input-oldpassword">Old
+                                                    Password</label>
+                                                <input type="text" id="oldpassword" name="oldpassword"
+                                                       class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label" for="input-newpassword">New
+                                                    Password</label>
+                                                <input type="text" id="newpassword" name="newpassword"
+                                                       class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr class="my-4"/>
+                                    <!-- Description -->
+                                    <h6 class="heading-small text-muted mb-4">Profile Picture</h6>
+                                    <div class="pl-lg-4">
+                                        <div class="form-group">
+                                            <input type="file" name="profile_pic" multiple="" autocomplete="off">
+                                        </div>
+                                    </div>
+                                    <hr class="my-4"/>
+                                    <div class="col-lg-12 text-right">
+                                        <button type="submit" class="btn btn-primary my-1">Save Changes</button>
+                                    </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            {#            <footer class="footer pt-0">#}
+            {#                <div class="row align-items-center justify-content-lg-between">#}
+            {#                    <div class="col-lg-6">#}
+            {#                        <div class="copyright text-center  text-lg-left  text-muted">#}
+            {#                            &copy; 2021 <a href="https://www.creative-tim.com" class="font-weight-bold ml-1"#}
+            {#                                           target="_blank">Creative Tim</a>#}
+            {#                        </div>#}
+            {#                    </div>#}
+            {#                    <div class="col-lg-6">#}
+            {#                        <ul class="nav nav-footer justify-content-center justify-content-lg-end">#}
+            {#                            <li class="nav-item">#}
+            {#                                <a href="https://www.creative-tim.com" class="nav-link" target="_blank">Creative Tim</a>#}
+            {#                            </li>#}
+            {#                            <li class="nav-item">#}
+            {#                                <a href="https://www.creative-tim.com/presentation" class="nav-link" target="_blank">About#}
+            {#                                    Us</a>#}
+            {#                            </li>#}
+            {#                            <li class="nav-item">#}
+            {#                                <a href="http://blog.creative-tim.com" class="nav-link" target="_blank">Blog</a>#}
+            {#                            </li>#}
+            {#                            <li class="nav-item">#}
+            {#                                <a href="https://www.creative-tim.com/license" class="nav-link"#}
+            {#                                   target="_blank">License</a>#}
+            {#                            </li>#}
+            {#                        </ul>#}
+            {#                    </div>#}
+            {#                </div>#}
+            {#            </footer>#}
+        </div>
+    </div>
+{% endblock content %}

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Start your development with a Dashboard for Bootstrap 4.">
     <meta name="author" content="Creative Tim">
-    <title>Zimtopup</title>
+    <title>{% block title %}Zimtopup{% endblock %}</title>
     <!-- Favicon -->
     <link rel="icon" href="{{ url_for('static', filename='assets/img/brand/favicon.png') }}" type="image/png">
     <!-- Fonts -->
@@ -29,7 +29,8 @@
         <!-- Brand -->
         <div class="sidenav-header  d-flex  align-items-center">
             <a class="navbar-brand" href="{{ url_for('views.home') }}">
-                <img src="{{ url_for('static', filename='assets/img/brand/zimtopup-logo.png') }}" class="navbar-brand-img"
+                <img src="{{ url_for('static', filename='assets/img/brand/zimtopup-logo.png') }}"
+                     class="navbar-brand-img"
                      alt="..." width="120">
             </a>
             <div class=" ml-auto ">
@@ -161,6 +162,25 @@
                         <a class="nav-link" href="#" data-action="search-show" data-target="#navbar-search-main">
                             <i class="ni ni-zoom-split-in"></i>
                         </a>
+                    </li>
+                    <li>
+                        {% if selected_currency == "ZWL" %}
+                            <select type="text"
+                                    class="form-control"
+                                    name="currency" id="currency"
+                                    aria-label="8">
+                                <option value="ZWL" selected>ZWL</option>
+                                <option value="USD">USD</option>
+                            </select>
+                        {% else %}
+                            <select type="text"
+                                    class="form-control"
+                                    name="currency" id="currency"
+                                    aria-label="8">
+                                <option value="ZWL">ZWL</option>
+                                <option value="USD" selected>USD</option>
+                            </select>
+                        {% endif %}
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link" href="#" role="button" data-toggle="dropdown" aria-haspopup="true"
@@ -339,7 +359,13 @@
                            aria-expanded="false">
                             <div class="media align-items-center">
                   <span class="avatar avatar-sm rounded-circle">
-                    <img alt="Image placeholder" src="{{ url_for('static', filename='assets/img/theme/team-4.jpg') }}">
+                    {% if not img_path %}
+                        <img alt="profile picture" class="rounded-circle" height="35" width="35"
+                             src="{{ url_for('static', filename='blue.png') }}">
+                    {% else %}
+                        <img alt="profile picture" class="rounded-circle" height="35" width="35"
+                             src="{{ url_for('static', filename=img_path) }}">
+                    {% endif %}
                   </span>
                                 <div class="media-body  ml-2  d-none d-lg-block">
                                     <span class="mb-0 text-sm  font-weight-bold">{{ user.username }}</span>
@@ -350,7 +376,7 @@
                             <div class="dropdown-header noti-title">
                                 <h6 class="text-overflow m-0">Welcome!</h6>
                             </div>
-                            <a href="#!" class="dropdown-item">
+                            <a href="{{ url_for('views.profile', user_id=current_user.id) }}" class="dropdown-item">
                                 <i class="ni ni-single-02"></i>
                                 <span>My profile</span>
                             </a>
@@ -401,6 +427,19 @@
     </footer>
 </div>
 </div>
+
+<!-- Script to send curreny -->
+<script>
+    const selectEl = document.getElementById('currency');
+
+    selectEl.addEventListener('change', () => {
+        const selectedValue = selectEl.value;
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/get-selected-currency');
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({selectedOption: selectedValue}));
+    });
+</script>
 <!-- Argon Scripts -->
 <!-- Core -->
 <script src="{{ url_for('static', filename='assets/vendor/jquery/dist/jquery.min.js') }}"></script>

@@ -6,7 +6,7 @@ import psycopg2
 
 def get_montly_sales():
     conn = psycopg2.connect(
-        database="zimtopup", user='postgres', password='wkpProg219!', host='213.136.91.250', port='5432'
+        database="zimtopup", user='postgres', password='Support1999', host='localhost', port='5432'
     )
     # Setting auto commit false
     conn.autocommit = True
@@ -38,7 +38,7 @@ def get_montly_sales():
 
 def get_buddie_available():
     conn = psycopg2.connect(
-        database="zimtopup", user='postgres', password='wkpProg219!', host='213.136.91.250', port='5432'
+        database="zimtopup", user='postgres', password='Support1999', host='localhost', port='5432'
     )
     # Setting auto commit false
     conn.autocommit = True
@@ -57,7 +57,7 @@ def get_buddie_available():
 
 def get_buddie_sold():
     conn = psycopg2.connect(
-        database="zimtopup", user='postgres', password='wkpProg219!', host='213.136.91.250', port='5432'
+        database="zimtopup", user='postgres', password='Support1999', host='localhost', port='5432'
     )
     # Setting auto commit false
     conn.autocommit = True
@@ -76,7 +76,7 @@ def get_buddie_sold():
 
 def get_available_value_counts():
     conn = psycopg2.connect(
-        database="zimtopup", user='postgres', password='wkpProg219!', host='213.136.91.250', port='5432'
+        database="zimtopup", user='postgres', password='@Support1999', host='localhost', port='5432'
     )
     # Setting auto commit false
     conn.autocommit = True
@@ -104,7 +104,7 @@ def get_available_value_counts():
 
 def get_available_denominations():
     conn = psycopg2.connect(
-        database="zimtopup", user='postgres', password='wkpProg219!', host='213.136.91.250', port='5432'
+        database="zimtopup", user='postgres', password='Support199', host='localhost', port='5432'
     )
     # Setting auto commit false
     conn.autocommit = True

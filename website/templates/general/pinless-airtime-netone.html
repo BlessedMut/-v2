@@ -65,8 +65,13 @@
                     </div>
                     <div class="col-md-10">
                         <div class="form-group">
-                            <label class="form-control-label" for="example3cols2Input">Available Wallet Balance
-                                is ZWL{{ wallet_balance }}.</label>
+                            {% if selected_currency == "ZWL" %}
+                                <label class="form-control-label" for="example3cols2Input">Available Wallet Balance
+                                    is ZWL{{ wallet_balance }}.</label>
+                            {% else %}
+                                <label class="form-control-label" for="example3cols2Input">Available Wallet Balance
+                                    is USD{{ wallet_balance }}.</label>
+                            {% endif %}
                             <form class="row" method="POST">
                                 <div class="col-lg-4 mb-2 mt-2">
                                     <input class="form-control" name="phone_number" id="phone_number"

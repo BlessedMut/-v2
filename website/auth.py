@@ -38,8 +38,10 @@ def login():
                     return redirect(url_for('views.download'))
             else:
                 flash('Incorrect password, try again.', category='error')
+                return render_template("auth/login.html")
         else:
             flash('Email does not exist.', category='error')
+            return render_template("auth/login.html")
     else:
         return render_template("auth/login.html")
 

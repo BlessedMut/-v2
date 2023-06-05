@@ -38,6 +38,7 @@ class User(db.Model, UserMixin):
     role = db.Column(db.String(30))
     status = db.Column(db.Boolean)
     date_created = db.Column(db.DateTime(timezone=True), default=func.now())
+    profile_pic = db.Column(db.String(250))
     airtime = db.relationship('AirtimeSold')
 
 
