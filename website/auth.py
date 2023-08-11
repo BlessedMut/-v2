@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -7,6 +9,15 @@ from .models import User
 
 auth = Blueprint('auth', __name__)
 
+def get_time_of_day(time):
+    if time < 12:
+        return "Morning"
+    elif time < 16:
+        return "Afternoon"
+    elif time < 19:
+        return "Evening"
+    else:
+        return "Evening"
 
 @auth.route('/', methods=['GET', 'POST'])
 @auth.route('/login', methods=['GET', 'POST'])
@@ -20,8 +31,11 @@ def login():
             if user.status == None or user.status == False:
                 flash("Account not verified, contact system Administrator.")
             elif check_password_hash(user.password, password):
+                now = datetime.now()
+
+                time_of_day = get_time_of_day(now.hour)
                 flash(
-                    f'Welcome back {user.username}! If you have any problems with the system, please send a ticket on blessedmutengwa@gmail.com or call +263 774 222 337',
+                    f'Good {time_of_day.lower()} {user.username}! If you have any problems with the system, please send a ticket on blessedmutengwa@gmail.com or call +263 774 222 337',
                     category='success')
                 login_user(user, remember=False)
                 if user.role == "level_0":

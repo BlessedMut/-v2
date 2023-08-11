@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Contacts for {{ company.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Update Contacts for {{ company.name }}</h1>
+    <form method="post">
+        {% for department in company.departments %}
+            <h2>{{ department.name }}</h2>
+            <ul>
+                {% for employee in department.employees %}
+                    <li>
+                        <input type="text" name="{{ employee.id }}_name" value="{{ employee.name }}" required>
+                        <input type="email" name="{{ employee.id }}_email" value="{{ employee.email }}" required>
+                        <input type="tel" name="{{ employee.id }}_phone" value="{{ employee.phone }}" required>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+        <button type="submit">Save</button>
+    </form>
+    <a href="{{ url_for('views.manage_contacts') }}">Back to Companies</a>
+</body>
+</html>

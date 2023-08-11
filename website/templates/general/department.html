@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ department.name }} Contacts</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>{{ department.name }} Contacts</h1>
+    <ul>
+        {% for employee in employees %}
+            <li>{{ employee.name }} - {{ employee.email }} - {{ employee.phone }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('views.import_contacts', company_id=department.company.id) }}">Import Contacts</a>
+    <a href="{{ url_for('views.update_contacts', company_id=department.company.id) }}">Update Contacts</a>
+    <a href="{{ url_for('views.delete_contacts', company_id=department.company.id) }}">Delete Contacts</a>
+</body>
+</html>

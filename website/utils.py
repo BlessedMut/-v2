@@ -2,6 +2,7 @@ import os
 
 import matplotlib
 from flask import flash, current_app
+from sqlalchemy.exc import ObjectNotExecutableError
 from werkzeug.utils import secure_filename
 
 matplotlib.use('Agg')
@@ -64,8 +65,12 @@ def generate_pdf(output_name, number, denomination, file):
         airtime_left = append_data(available_airtime)
         airtime_left.to_sql(name='airtime_available', con=engine, if_exists='replace', index=True)
 
-        with engine.connect() as con:
-            con.execute('ALTER TABLE airtime_available ADD PRIMARY KEY (id);')
+        try:
+            with engine.connect() as con:
+                con.execute('ALTER TABLE airtime_available ADD PRIMARY KEY (id);')
+        except ObjectNotExecutableError:
+            pass
+
         path_to_save = os.path.join(current_app.instance_path, 'file_downloads',
                                     secure_filename(output_name) + ".csv")
 
@@ -90,8 +95,11 @@ def generate_pdf(output_name, number, denomination, file):
         airtime_left = append_data(available_airtime)
         airtime_left.to_sql(name='airtime_available', con=engine, if_exists='replace', index=True)
 
-        with engine.connect() as con:
-            con.execute('ALTER TABLE airtime_available ADD PRIMARY KEY (id);')
+        try:
+            with engine.connect() as con:
+                con.execute('ALTER TABLE airtime_available ADD PRIMARY KEY (id);')
+        except ObjectNotExecutableError:
+            pass
 
         path_to_save = os.path.join(current_app.instance_path, 'file_downloads',
                                     secure_filename(output_name) + ".xlsx")
@@ -112,8 +120,11 @@ def generate_pdf(output_name, number, denomination, file):
         airtime_left = append_data(available_airtime)
         airtime_left.to_sql(name='airtime_available', con=engine, if_exists='replace', index=True)
 
-        with engine.connect() as con:
-            con.execute('ALTER TABLE airtime_available ADD PRIMARY KEY (id);')
+        try:
+            with engine.connect() as con:
+                con.execute('ALTER TABLE airtime_available ADD PRIMARY KEY (id);')
+        except ObjectNotExecutableError:
+            pass
 
         path_to_save = os.path.join(current_app.instance_path, 'file_downloads',
                                     secure_filename(output_name) + ".pdf")

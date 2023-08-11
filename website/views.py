@@ -1,6 +1,8 @@
 import os
 from datetime import datetime
 
+import vobject as vobject
+from sqlalchemy import create_engine
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import db
@@ -11,12 +13,20 @@ from werkzeug.utils import secure_filename
 
 from website.airtime_statistics import get_montly_sales, get_buddie_sold, get_buddie_available, \
     get_available_value_counts, get_available_denominations
-from website.api import get_wallet_balance, voice_recharge, get_airtime_bundles, bundle_recharge, \
-    get_wallet_balance_usd, get_airtime_bundles_usd
-from website.models import User
+from website.api import get_wallet_balance, voice_recharge, voice_recharge_usd, get_airtime_bundles, bundle_recharge, \
+    get_wallet_balance_usd, get_airtime_bundles_usd, bundle_recharge_usd
+from website.models import User, Employee, Department, Company
 from website.utils import upload_file, generate_pdf
+import pandas as pd
 
 views = Blueprint('views', __name__)
+
+
+engine = create_engine('postgresql+psycopg2://postgres:Support1999@localhost:5432/zimtopup', pool_recycle=3600)
+
+def get_available_data():
+    available_airtime = pd.read_sql_table('airtime_available', con=engine)
+    return available_airtime
 
 
 @views.route('/', methods=['GET', 'POST'])
@@ -90,7 +100,10 @@ def download():
                 dt = datetime.now().strftime('%d_%b_%y')
                 file_name = "airtime_printout_" + str(dt)
 
+                print("Denomination is", denomination)
+
                 if number != "":
+
                     if selected_option == "fpdf":
                         generate_pdf(file_name, number=int(number), denomination=float(denomination), file="fpdf")
                         download_file = (os.path.join(current_app.instance_path, 'file_downloads',
@@ -106,9 +119,11 @@ def download():
                                                selected_currency=selected_currency)
 
                     if selected_option == "csv":
+                        print("Downloading csv file")
                         generate_pdf(file_name, number=int(number), denomination=float(denomination), file="csv")
                         download_file = (os.path.join(current_app.instance_path, 'file_downloads',
                                                       secure_filename(file_name)) + '.csv')
+
                         return send_file(download_file,
                                          mimetype='text/csv',
                                          download_name=file_name + ".csv")
@@ -118,6 +133,7 @@ def download():
                         return render_template("general/print-airtime.html", user=current_user,
                                                denominations=denominations, img_path=img_path,
                                                selected_currency=selected_currency)
+
 
                     if selected_option == "excel":
                         generate_pdf(file_name, number=int(number), denomination=float(denomination), file="excel")
@@ -129,29 +145,35 @@ def download():
                         selected_currency = session.get('selectedOption', 'ZWL')
                         return render_template("general/print-airtime.html", user=current_user,
                                                denominations=denominations, selected_currency=selected_currency)
+
                 else:
+                    airtime = get_available_value_counts()
+
                     denominations = get_available_denominations()
                     flash("Please enter number for the require vouchers to be printed")
                     selected_currency = session.get('selectedOption', 'ZWL')
-                    return render_template("general/print-airtime.html", user=current_user,
+                    return render_template("general/print-airtime.html", airtime=airtime, user=current_user,
                                            selected_currency=selected_currency, denominations=denominations)
             else:
+                airtime = get_available_value_counts()
+
                 user_data = User.query.filter_by(id=current_user.id).first()
                 img_path = f'profiles/img/{user_data.username}/{user_data.profile_pic}'
                 denominations = get_available_denominations()
                 selected_currency = session.get('selectedOption', 'ZWL')
-                return render_template("general/print-airtime.html", user=current_user, img_path=img_path,
+                return render_template("general/print-airtime.html", airtime=airtime, user=current_user, img_path=img_path,
                                        denominations=denominations, selected_currency=selected_currency)
         except IndexError as e:
+            airtime = get_available_value_counts()
             denominations = get_available_denominations(df=get_available_data())
             flash('Quantity of vouchers selected exceed available airtime in stock', category='error')
             user_data = User.query.filter_by(id=current_user.id).first()
             img_path = f'profiles/img/{user_data.username}/{user_data.profile_pic}'
             selected_currency = session.get('selectedOption', 'ZWL')
-            return render_template("general/print-airtime.html", user=current_user, img_path=img_path,
+            return render_template("general/print-airtime.html", airtime=airtime, user=current_user, img_path=img_path,
                                    denominations=denominations, selected_currency=selected_currency)
     else:
-
+        print("GET AIRTIME")
         airtime = get_available_value_counts()
         user_data = User.query.filter_by(id=current_user.id).first()
         img_path = f'profiles/img/{user_data.username}/{user_data.profile_pic}'
@@ -181,34 +203,84 @@ def netone_pinless():
             return render_template('general/pinless-airtime-netone.html', selected_currency=selected_currency,
                                    user=current_user, img_path=img_path, wallet_balance=wallet_balance)
     else:
-        phone_number = request.form.get('phone_number').strip()
-        amount = float(request.form.get('amount'))
+        selected_currency = session.get('selectedOption', 'ZWL')
 
-        wallet_balance = float(get_wallet_balance())
+        if selected_currency == "ZWL":
+            phone_number = request.form.get('phone_number').strip()
+            amount = float(request.form.get('amount'))
 
-        if amount > wallet_balance:
-            flash(f"Amount exceeds total of your float balance. Your wallet balance is {wallet_balance}",
-                  category='error')
-        elif phone_number[:3] != "071":
-            flash(f"Please enter a netone phone number in the format starting with 071. {phone_number} is incorrect.",
-                  category='error')
-        elif len(phone_number) != 10:
-            flash(
-                'Incorrect format for mobile phone number, please follow this format 071X XXX XXX and make sure you '
-                'meet a length of 10 for the number.', category='error')
-
-        voice_api_request = voice_recharge(phone_number=phone_number, amount=amount)
-        if voice_api_request == 200:
-            flash(
-                f"Transaction processed successfully!\nYou have successfully purchased voice for ZWL{amount} for {phone_number}",
-                category='success')
-        else:
-            flash("Transaction failed!", category='error')
+            wallet_balance = float(get_wallet_balance())
+            selected_currency = session.get('selectedOption', 'ZWL')
             user_data = User.query.filter_by(id=current_user.id).first()
             img_path = f'profiles/img/{user_data.username}/{user_data.profile_pic}'
-            selected_currency = session.get('selectedOption', 'ZWL')
-        return render_template('general/pinless-airtime-netone.html', selected_currency=selected_currency,
-                               user=current_user, img_path=img_path, wallet_balance=wallet_balance)
+
+            if amount > wallet_balance:
+                flash(f"Amount exceeds total of your float balance. Your wallet balance is {wallet_balance}",
+                      category='error')
+                return render_template('general/pinless-airtime-netone.html', selected_currency=selected_currency,
+                                       user=current_user, img_path=img_path, wallet_balance=wallet_balance)
+            elif phone_number[:3] != "071":
+                flash(f"Please enter a netone phone number in the format starting with 071. {phone_number} is incorrect.",
+                      category='error')
+                return render_template('general/pinless-airtime-netone.html', selected_currency=selected_currency,
+                                       user=current_user, img_path=img_path, wallet_balance=wallet_balance)
+            elif len(phone_number) != 10:
+                flash(
+                    'Incorrect format for mobile phone number, please follow this format 071X XXX XXX and make sure you '
+                    'meet a length of 10 for the number.', category='error')
+                return render_template('general/pinless-airtime-netone.html', selected_currency=selected_currency,
+                                       user=current_user, img_path=img_path, wallet_balance=wallet_balance)
+
+            voice_api_request = voice_recharge(phone_number=phone_number, amount=amount)
+            if voice_api_request == 200:
+                flash(
+                    f"Transaction processed successfully!\nYou have successfully purchased voice for ZWL{amount} for {phone_number}",
+                    category='success')
+                return render_template('general/pinless-airtime-netone.html', selected_currency=selected_currency,
+                                       user=current_user, img_path=img_path, wallet_balance=wallet_balance)
+            else:
+                flash("Transaction failed!", category='error')
+                return render_template('general/pinless-airtime-netone.html', selected_currency=selected_currency,
+                                       user=current_user, img_path=img_path, wallet_balance=wallet_balance)
+        else:
+            phone_number = request.form.get('phone_number').strip()
+            amount = float(request.form.get('amount'))
+
+            wallet_balance = float(get_wallet_balance_usd())
+            selected_currency = session.get('selectedOption', 'USD')
+            user_data = User.query.filter_by(id=current_user.id).first()
+            img_path = f'profiles/img/{user_data.username}/{user_data.profile_pic}'
+
+            if amount > wallet_balance:
+                flash(f"Amount exceeds total of your float balance. Your wallet balance is {wallet_balance}",
+                      category='error')
+                return render_template('general/pinless-airtime-netone.html', selected_currency=selected_currency,
+                                       user=current_user, img_path=img_path, wallet_balance=wallet_balance)
+            elif phone_number[:3] != "071":
+                flash(
+                    f"Please enter a netone phone number in the format starting with 071. {phone_number} is incorrect.",
+                    category='error')
+                return render_template('general/pinless-airtime-netone.html', selected_currency=selected_currency,
+                                       user=current_user, img_path=img_path, wallet_balance=wallet_balance)
+            elif len(phone_number) != 10:
+                flash(
+                    'Incorrect format for mobile phone number, please follow this format 071X XXX XXX and make sure you '
+                    'meet a length of 10 for the number.', category='error')
+                return render_template('general/pinless-airtime-netone.html', selected_currency=selected_currency,
+                                       user=current_user, img_path=img_path, wallet_balance=wallet_balance)
+
+            voice_api_request = voice_recharge_usd(phone_number=phone_number, amount=amount)
+            if voice_api_request == 200:
+                flash(
+                    f"Transaction processed successfully!\nYou have successfully purchased voice for ZWL{amount} for {phone_number}",
+                    category='success')
+                return render_template('general/pinless-airtime-netone.html', selected_currency=selected_currency,
+                                       user=current_user, img_path=img_path, wallet_balance=wallet_balance)
+            else:
+                flash("Transaction failed!", category='error')
+                return render_template('general/pinless-airtime-netone.html', selected_currency=selected_currency,
+                                       user=current_user, img_path=img_path, wallet_balance=wallet_balance)
+
 
 
 @views.route('/netone-bundles', methods=['GET', 'POST'])
@@ -252,28 +324,42 @@ def netone_bundles():
             amount = float(amount)
             wallet_balance = float(get_wallet_balance())
 
+            user_data = User.query.filter_by(id=current_user.id).first()
+            img_path = f'profiles/img/{user_data.username}/{user_data.profile_pic}'
+            selected_currency = session.get('selectedOption', 'ZWL')
+
             if amount > wallet_balance:
                 flash(f"Amount exceeds total of your float balance. Your wallet balance is {wallet_balance}",
                       category='error')
+                return render_template('general/bundles-netone.html', user=current_user, bundles=bundles,
+                                       wallet_balance=wallet_balance, img_path=img_path,
+                                       selected_currency=selected_currency)
             elif phone_number[:3] != "071":
                 flash(
                     f"Please enter a netone phone number in the format starting with 071. {phone_number} is incorrect.",
                     category='error')
+                return render_template('general/bundles-netone.html', user=current_user, bundles=bundles,
+                                       wallet_balance=wallet_balance, img_path=img_path,
+                                       selected_currency=selected_currency)
             elif len(phone_number) != 10:
                 flash(
                     'Incorrect format for mobile phone number, please follow this format 071X XXX XXX and make sure you '
                     'meet a length of 10 for the number.', category='error')
+                return render_template('general/bundles-netone.html', user=current_user, bundles=bundles,
+                                       wallet_balance=wallet_balance, img_path=img_path,
+                                       selected_currency=selected_currency)
 
             bundle_api_request = bundle_recharge(phone_number=phone_number, code=code)
             if bundle_api_request == 200:
                 flash(
                     f"Transaction processed successfully!\nYou have successfully purchased {name} for ZWL{amount} for {phone_number}",
                     category='success')
+                return render_template('general/bundles-netone.html', user=current_user, bundles=bundles,
+                                       wallet_balance=wallet_balance, img_path=img_path,
+                                       selected_currency=selected_currency)
             else:
                 flash("Transaction failed!", category='error')
-                user_data = User.query.filter_by(id=current_user.id).first()
-                img_path = f'profiles/img/{user_data.username}/{user_data.profile_pic}'
-                selected_currency = session.get('selectedOption', 'ZWL')
+
             return render_template('general/bundles-netone.html', user=current_user, bundles=bundles,
                                    wallet_balance=wallet_balance, img_path=img_path,
                                    selected_currency=selected_currency)
@@ -292,28 +378,42 @@ def netone_bundles():
             amount = float(amount)
             wallet_balance = float(get_wallet_balance_usd())
 
+            user_data = User.query.filter_by(id=current_user.id).first()
+            img_path = f'profiles/img/{user_data.username}/{user_data.profile_pic}'
+            selected_currency = session.get('selectedOption', 'ZWL')
+
             if amount > wallet_balance:
                 flash(f"Amount exceeds total of your float balance. Your wallet balance is {wallet_balance}",
                       category='error')
+                return render_template('general/bundles-netone.html', user=current_user, bundles=bundles,
+                                       wallet_balance=wallet_balance, img_path=img_path,
+                                       selected_currency=selected_currency)
             elif phone_number[:3] != "071":
                 flash(
                     f"Please enter a netone phone number in the format starting with 071. {phone_number} is incorrect.",
                     category='error')
+                return render_template('general/bundles-netone.html', user=current_user, bundles=bundles,
+                                       wallet_balance=wallet_balance, img_path=img_path,
+                                       selected_currency=selected_currency)
             elif len(phone_number) != 10:
                 flash(
                     'Incorrect format for mobile phone number, please follow this format 071X XXX XXX and make sure you '
                     'meet a length of 10 for the number.', category='error')
+                return render_template('general/bundles-netone.html', user=current_user, bundles=bundles,
+                                       wallet_balance=wallet_balance, img_path=img_path,
+                                       selected_currency=selected_currency)
 
-            bundle_api_request = bundle_recharge(phone_number=phone_number, code=code)
+            bundle_api_request = bundle_recharge_usd(phone_number=phone_number, code=code)
             if bundle_api_request == 200:
                 flash(
-                    f"Transaction processed successfully!\nYou have successfully purchased {name} for ZWL{amount} for {phone_number}",
+                    f"Transaction processed successfully!\nYou have successfully purchased {name} for USD{amount} for {phone_number}",
                     category='success')
+                return render_template('general/bundles-netone.html', user=current_user, bundles=bundles,
+                                       wallet_balance=wallet_balance, img_path=img_path,
+                                       selected_currency=selected_currency)
             else:
                 flash("Transaction failed!", category='error')
-                user_data = User.query.filter_by(id=current_user.id).first()
-                img_path = f'profiles/img/{user_data.username}/{user_data.profile_pic}'
-                selected_currency = session.get('selectedOption', 'ZWL')
+
             return render_template('general/bundles-netone.html', user=current_user, bundles=bundles,
                                    wallet_balance=wallet_balance, img_path=img_path,
                                    selected_currency=selected_currency)
@@ -404,11 +504,17 @@ def profile(user_id):
                                      filename))
 
                     # Update the user data in the database with the new profile picture filename
-                    User.query.filter_by(id=current_user.id).update(
-                        {'email': email, 'username': username, 'mobile': mobile, 'password': generate_password_hash(
-                            new_password, method='sha256'),
-                         'profile_pic': filename})
-                    db.session.commit()
+                    if old_password == "" or new_password == "":
+                        User.query.filter_by(id=current_user.id).update(
+                            {'email': email, 'username': username, 'mobile': mobile,
+                             'profile_pic': filename})
+                        db.session.commit()
+                    else:
+                        User.query.filter_by(id=current_user.id).update(
+                            {'email': email, 'username': username, 'mobile': mobile, 'password': generate_password_hash(
+                                new_password, method='sha256'),
+                             'profile_pic': filename})
+                        db.session.commit()
                     # Redirect to the user's profile page
                     return redirect(f'/profile/{user_id}')
                 else:
@@ -439,3 +545,76 @@ def profile(user_id):
         # time_of_day = get_time_of_day(now.hour)
         # return redirect(
         #     url_for('views.profile', user_data=user_data, img_path=img_path, date_joined=date_joined))
+    
+    
+# Manage Contacts
+@views.route('/manage-contacts')
+def manage_contacts():
+    companies = Company.query.all()
+    print(companies)
+    return render_template('general/manage-contacts.html', companies=companies)
+
+
+@views.route('/import/<int:company_id>', methods=['GET', 'POST'])
+def import_contacts(company_id):
+    company = Company.query.get(company_id)
+    if request.method == 'POST':
+        file = request.files['file']
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+        with open(os.path.join(current_app.config['UPLOAD_FOLDER'], filename), 'r') as f:
+            for card in vobject.readComponents(f):
+                print(card)
+                name = card.fn.value
+                email = card.email.value if card.email else ''
+                phone = card.tel.value if card.tel else ''
+                department_name = card.org.value[1] if card.org else ''
+                print("Department is", department_name)
+                department = Department.query.filter_by(name=department_name, company_id=company.id).first()
+                if not department:
+                    department = Department(name=department_name, company_id=company.id)
+                    db.session.add(department)
+                employee = Employee(name=name, email=email, phone=phone, department_id=department.id)
+                db.session.add(employee)
+        db.session.commit()
+        return redirect(url_for('views.view_department', company_id=company_id, department_id=department.id))
+    return render_template('general/import.html', company=company)
+
+
+@views.route('/department/<int:department_id>')
+def view_department(department_id):
+    department = Department.query.get(department_id)
+    employees = department.employees
+    return render_template('general/department.html', department=department, employees=employees)
+
+
+@views.route('/update/<int:company_id>', methods=['GET', 'POST'])
+def update_contacts(company_id):
+    company = Company.query.get(company_id)
+    if request.method == 'POST':
+        for department in company.departments:
+            for employee in department.employees:
+                employee.name = request.form.get(f'{employee.id}_name')
+                employee.email = request.form.get(f'{employee.id}_email')
+                employee.phone = request.form.get(f'{employee.id}_phone')
+        db.session.commit()
+        return redirect(url_for('views.manage_contacts'))
+    return render_template('general/update.html', company=company)
+
+
+@views.route('/delete/<int:company_id>', methods=['GET', 'POST'])
+def delete_contacts(company_id):
+    company = Company.query.get(company_id)
+    if request.method == 'POST':
+        if request.form.get('delete_company') == '1':
+            db.session.delete(company)
+        else:
+            department_id = request.form.get('department_id')
+            if department_id:
+                department = Department.query.get(department_id)
+                db.session.delete(department)
+            else:
+                Employee.query.filter_by(department_id=None).delete()
+        db.session.commit()
+        return redirect(url_for('views.manage_contacts'))
+    return render_template('general/delete.html', company=company)

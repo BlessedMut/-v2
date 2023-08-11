@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Import Contacts</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Import Contacts for {{ company.name }}</h1>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Import</button>
+    </form>
+    <a href="{{ url_for('views.view_department', department_id=company.departments[0].id) }}">Back to Contacts</a>
+</body>
+</html>

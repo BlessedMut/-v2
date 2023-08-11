@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Contacts for {{ company.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Delete Contacts for {{ company.name }}</h1>
+    <form method="post">
+        <input type="checkbox" name="delete_company" value="1"> Delete entire company<br>
+        <select name="department_id">
+            <option value="">Delete department...</option>
+            {% for department in company.departments %}
+                <option value="{{ department.id }}">{{ department.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Delete</button>
+    </form>
+    <a href="{{ url_for('views.manage_contacts') }}">Back to Companies</a>
+</body>
+</html>

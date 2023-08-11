@@ -8,24 +8,26 @@ class AirtimeSold(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     denomination = db.Column(db.Float)
     date = db.Column(db.DateTime(timezone=True), default=func.now())
-    voucher_key = db.Column(db.Integer)
-    serial_number = db.Column(db.Integer)
-    batch_number = db.Column(db.Integer)
+    voucher_key = db.Column(db.String(30))
+    serial_number = db.Column(db.String(60))
+    batch_number = db.Column(db.String(60))
     expiry_date = db.Column(db.DateTime(timezone=True))
-    vic = db.Column(db.Integer)
+    vic = db.Column(db.String(30))
     receiver = db.Column(db.String(21))
     buyer = db.Column(db.String(21))
-    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"), nullable=False)
+    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"), nullable=True)
 
 
 class AirtimeAvailable(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     denomination = db.Column(db.Float)
-    voucher_key = db.Column(db.Integer)
-    serial_number = db.Column(db.Integer)
-    batch_number = db.Column(db.Integer)
+    voucher_key = db.Column(db.String(30))
+    serial_number = db.Column(db.String(60))
+    batch_number = db.Column(db.String(60))
     expiry_date = db.Column(db.String(21))
     vic = db.Column(db.Integer)
+    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"), nullable=False)
+
 
 
 class User(db.Model, UserMixin):
@@ -39,7 +41,12 @@ class User(db.Model, UserMixin):
     status = db.Column(db.Boolean)
     date_created = db.Column(db.DateTime(timezone=True), default=func.now())
     profile_pic = db.Column(db.String(250))
-    airtime = db.relationship('AirtimeSold')
+    airtime_sold = db.relationship('AirtimeSold', backref='sold_airtime', lazy=True)
+    airtime_available = db.relationship('AirtimeAvailable', backref='available_airtime', lazy=True)
+    netone_pinless = db.relationship('PinlessRecharges', backref='pinless_netone', lazy=True)
+    netone_bundles = db.relationship('DataBundles', backref='bundles_netone', lazy=True)
+    upload_logs = db.relationship('UploadLogs', backref='logs', lazy=True)
+    company = db.relationship('Company', backref='company', lazy=True)
 
 
 class PinlessRecharges(db.Model):
@@ -77,3 +84,34 @@ class DataBundles(db.Model):
     recharge_id = db.Column(db.String(100))
     user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"), nullable=False)
 
+
+# Contact Management
+class Company(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    address = db.Column(db.String(250))
+    phone_number = db.Column(db.String(15))
+    departments = db.relationship('Department', backref='company', lazy=True)
+    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"), nullable=False)
+
+
+
+class Department(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    employees = db.relationship('Employee', backref='department', lazy=True)
+
+
+class Employee(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(50), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    department_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=False)
+
+
+class UploadLogs(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date_created = db.Column(db.DateTime(timezone=True), default=func.now())
+    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"), nullable=False)
